@@ -1,21 +1,27 @@
 import 'package:flutter/material.dart';
-import 'register_page.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class RegisterPage extends StatefulWidget {
+  const RegisterPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _RegisterPageState extends State<RegisterPage> {
+  final _nomeController = TextEditingController();
   final _emailController = TextEditingController();
   final _senhaController = TextEditingController();
+  final _confirmarSenhaController = TextEditingController();
+
+  bool _senhaVisivel = false;
+  bool _confirmarSenhaVisivel = false;
 
   @override
   void dispose() {
+    _nomeController.dispose();
     _emailController.dispose();
     _senhaController.dispose();
+    _confirmarSenhaController.dispose();
     super.dispose();
   }
 
@@ -35,14 +41,16 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                // Logo
                 Image.asset(
                   'assets/images/logo.png',
                   height: 80,
                 ),
                 const SizedBox(height: 24),
 
+                // Título
                 const Text(
-                  'Login',
+                  'Registrar',
                   style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.w400,
@@ -51,6 +59,15 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 const SizedBox(height: 28),
 
+                // Campo Nome
+                _CampoTexto(
+                  label: 'Nome',
+                  controller: _nomeController,
+                  keyboardType: TextInputType.name,
+                ),
+                const SizedBox(height: 16),
+
+                // Campo Email
                 _CampoTexto(
                   label: 'Email',
                   controller: _emailController,
@@ -58,48 +75,59 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 const SizedBox(height: 16),
 
+                // Campo Senha
                 _CampoTexto(
                   label: 'Senha',
                   controller: _senhaController,
-                  obscureText: true,
-                ),
-                const SizedBox(height: 8),
-
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: GestureDetector(
-                    onTap: () {
-                      // TODO: navegar para recuperação de senha
-                    },
-                    child: const Text(
-                      'Esqueceu sua senha?',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.black54,
-                        decoration: TextDecoration.underline,
-                      ),
+                  obscureText: !_senhaVisivel,
+                  sufixIcon: IconButton(
+                    icon: Icon(
+                      _senhaVisivel ? Icons.visibility_off : Icons.visibility,
+                      color: Colors.black54,
+                      size: 20,
                     ),
+                    onPressed: () =>
+                        setState(() => _senhaVisivel = !_senhaVisivel),
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
 
+                // Campo Confirmar Senha
+                _CampoTexto(
+                  label: 'Confirmar senha',
+                  controller: _confirmarSenhaController,
+                  obscureText: !_confirmarSenhaVisivel,
+                  sufixIcon: IconButton(
+                    icon: Icon(
+                      _confirmarSenhaVisivel
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                      color: Colors.black54,
+                      size: 20,
+                    ),
+                    onPressed: () => setState(
+                            () => _confirmarSenhaVisivel = !_confirmarSenhaVisivel),
+                  ),
+                ),
+                const SizedBox(height: 28),
+
+                // Botão Registrar
                 SizedBox(
                   width: double.infinity,
                   height: 50,
-                  child: ElevatedButton(
+                  child: OutlinedButton(
                     onPressed: () {
-                      // TODO: lógica de login
+                      // TODO: lógica de registro
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFE84040),
-                      foregroundColor: Colors.white,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFFE84040),
+                      side: const BorderSide(color: Color(0xFFE84040)),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      elevation: 0,
                     ),
                     child: const Text(
-                      'Entrar',
+                      'Registrar',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
@@ -109,23 +137,18 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 const SizedBox(height: 20),
 
+                // Já possui conta
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Text(
-                      'Ainda não possui conta? ',
+                      'Já possui conta? ',
                       style: TextStyle(fontSize: 13, color: Colors.black54),
                     ),
                     GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const RegisterPage()),
-                        );
-                      },
+                      onTap: () => Navigator.pop(context),
                       child: const Text(
-                        'Registrar-se.',
+                        'Logar-se.',
                         style: TextStyle(
                           fontSize: 13,
                           color: Colors.black54,
@@ -149,12 +172,14 @@ class _CampoTexto extends StatelessWidget {
   final TextEditingController controller;
   final bool obscureText;
   final TextInputType keyboardType;
+  final Widget? sufixIcon;
 
   const _CampoTexto({
     required this.label,
     required this.controller,
     this.obscureText = false,
     this.keyboardType = TextInputType.text,
+    this.sufixIcon,
   });
 
   @override
@@ -174,6 +199,7 @@ class _CampoTexto extends StatelessWidget {
           decoration: InputDecoration(
             filled: true,
             fillColor: const Color(0xFFF2F2F2),
+            suffixIcon: sufixIcon,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: const BorderSide(color: Color(0xFFCCCCCC)),
