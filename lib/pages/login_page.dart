@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'register_page.dart';
+import 'home_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -17,6 +18,14 @@ class _LoginPageState extends State<LoginPage> {
     _emailController.dispose();
     _senhaController.dispose();
     super.dispose();
+  }
+
+  void _entrar() {
+    // TODO: validar credenciais de verdade
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const HomePage()),
+    );
   }
 
   @override
@@ -87,9 +96,7 @@ class _LoginPageState extends State<LoginPage> {
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: () {
-                      // TODO: lógica de login
-                    },
+                    onPressed: _entrar,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFE84040),
                       foregroundColor: Colors.white,
