@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
+import 'home_page.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -9,20 +11,77 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final _nomeController = TextEditingController();
+  final _sobrenomeController = TextEditingController();
   final _emailController = TextEditingController();
   final _senhaController = TextEditingController();
   final _confirmarSenhaController = TextEditingController();
+  final _authService = AuthService();
 
   bool _senhaVisivel = false;
   bool _confirmarSenhaVisivel = false;
+  bool _carregando = false;
+  String? _erro;
 
   @override
   void dispose() {
     _nomeController.dispose();
+    _sobrenomeController.dispose();
     _emailController.dispose();
     _senhaController.dispose();
     _confirmarSenhaController.dispose();
     super.dispose();
+  }
+
+  Future<void> _registrar() async {
+    final nome = _nomeController.text.trim();
+    final sobrenome = _sobrenomeController.text.trim();
+    final email = _emailController.text.trim();
+    final senha = _senhaController.text;
+    final confirmar = _confirmarSenhaController.text;
+
+    if (nome.isEmpty || sobrenome.isEmpty || email.isEmpty || senha.isEmpty) {
+      setState(() => _erro = 'Preencha todos os campos.');
+      return;
+    }
+    if (senha != confirmar) {
+      setState(() => _erro = 'As senhas não coincidem.');
+      return;
+    }
+    if (senha.length < 6) {
+      setState(() => _erro = 'A senha deve ter pelo menos 6 caracteres.');
+      return;
+    }
+
+    setState(() {
+      _carregando = true;
+      _erro = null;
+    });
+
+    try {
+      await _authService.cadastrar(
+        nome: nome,
+        sobrenome: sobrenome,
+        email: email,
+        senha: senha,
+      );
+
+      if (!mounted) return;
+
+      await _authService.login(email, senha);
+
+      if (!mounted) return;
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const HomePage()),
+            (_) => false,
+      );
+    } catch (e) {
+      setState(() {
+        _erro = e.toString().replaceFirst('Exception: ', '');
+      });
+    } finally {
+      if (mounted) setState(() => _carregando = false);
+    }
   }
 
   @override
@@ -41,14 +100,9 @@ class _RegisterPageState extends State<RegisterPage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Logo
-                Image.asset(
-                  'assets/images/logo.png',
-                  height: 80,
-                ),
+                Image.asset('assets/images/logo.png', height: 80),
                 const SizedBox(height: 24),
 
-                // Título
                 const Text(
                   'Registrar',
                   style: TextStyle(
@@ -59,7 +113,6 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 const SizedBox(height: 28),
 
-                // Campo Nome
                 _CampoTexto(
                   label: 'Nome',
                   controller: _nomeController,
@@ -67,7 +120,13 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 const SizedBox(height: 16),
 
-                // Campo Email
+                _CampoTexto(
+                  label: 'Sobrenome',
+                  controller: _sobrenomeController,
+                  keyboardType: TextInputType.name,
+                ),
+                const SizedBox(height: 16),
+
                 _CampoTexto(
                   label: 'Email',
                   controller: _emailController,
@@ -75,7 +134,6 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 const SizedBox(height: 16),
 
-                // Campo Senha
                 _CampoTexto(
                   label: 'Senha',
                   controller: _senhaController,
@@ -92,7 +150,6 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 const SizedBox(height: 16),
 
-                // Campo Confirmar Senha
                 _CampoTexto(
                   label: 'Confirmar senha',
                   controller: _confirmarSenhaController,
@@ -109,16 +166,33 @@ class _RegisterPageState extends State<RegisterPage> {
                             () => _confirmarSenhaVisivel = !_confirmarSenhaVisivel),
                   ),
                 ),
-                const SizedBox(height: 28),
+                const SizedBox(height: 16),
 
-                // Botão Registrar
+                // Mensagem de erro
+                if (_erro != null) ...[
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFEBEB),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFE84040)),
+                    ),
+                    child: Text(
+                      _erro!,
+                      style: const TextStyle(
+                          fontSize: 13, color: Color(0xFFE84040)),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+
                 SizedBox(
                   width: double.infinity,
                   height: 50,
                   child: OutlinedButton(
-                    onPressed: () {
-                      // TODO: lógica de registro
-                    },
+                    onPressed: _carregando ? null : _registrar,
                     style: OutlinedButton.styleFrom(
                       foregroundColor: const Color(0xFFE84040),
                       side: const BorderSide(color: Color(0xFFE84040)),
@@ -126,18 +200,24 @@ class _RegisterPageState extends State<RegisterPage> {
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    child: const Text(
+                    child: _carregando
+                        ? const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                        color: Color(0xFFE84040),
+                        strokeWidth: 2.5,
+                      ),
+                    )
+                        : const Text(
                       'Registrar',
                       style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
+                          fontSize: 16, fontWeight: FontWeight.w500),
                     ),
                   ),
                 ),
                 const SizedBox(height: 20),
 
-                // Já possui conta
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -187,10 +267,8 @@ class _CampoTexto extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 14, color: Colors.black87),
-        ),
+        Text(label,
+            style: const TextStyle(fontSize: 14, color: Colors.black87)),
         const SizedBox(height: 6),
         TextField(
           controller: controller,
