@@ -4,6 +4,8 @@ import '../../services/cidade_service.dart';
 import '../../services/checklist_service.dart';
 import '../../services/session_service.dart';
 
+enum FiltroVisita { todos, visitados, naoVisitados }
+
 class ChecklistPage extends StatefulWidget {
   const ChecklistPage({super.key});
 
@@ -19,20 +21,18 @@ class _ChecklistPageState extends State<ChecklistPage> {
   List<Cidade> _todasCidades = [];
   List<Cidade> _cidadesFiltradas = [];
 
-  // cidadeId → true/false (visitado)
   final Map<int, bool> _visitadas = {};
-  // cidadeId → usuarioId (para poder remover)
   int _usuarioId = 0;
   String _uuid = '';
 
   bool _loading = true;
-  // ids com requisição em andamento (evita double-tap)
   final Set<int> _salvando = {};
   String? _erro;
 
   bool _ordemAZ = true;
   List<String> _regioes = [];
   String? _regiaoSelecionada;
+  FiltroVisita _filtroVisita = FiltroVisita.todos;
 
   @override
   void initState() {
@@ -48,7 +48,10 @@ class _ChecklistPageState extends State<ChecklistPage> {
   }
 
   Future<void> _carregarTudo() async {
-    setState(() { _loading = true; _erro = null; });
+    setState(() {
+      _loading = true;
+      _erro = null;
+    });
     try {
       _uuid = await SessionService.getUuid() ?? '';
 
@@ -81,7 +84,10 @@ class _ChecklistPageState extends State<ChecklistPage> {
       });
       _filtrar();
     } catch (e) {
-      setState(() { _erro = e.toString(); _loading = false; });
+      setState(() {
+        _erro = e.toString();
+        _loading = false;
+      });
     }
   }
 
@@ -92,9 +98,17 @@ class _ChecklistPageState extends State<ChecklistPage> {
     if (_regiaoSelecionada != null) {
       resultado = resultado.where((c) => c.regiao == _regiaoSelecionada).toList();
     }
+
+    if (_filtroVisita == FiltroVisita.visitados) {
+      resultado = resultado.where((c) => _visitadas[c.id] == true).toList();
+    } else if (_filtroVisita == FiltroVisita.naoVisitados) {
+      resultado = resultado.where((c) => _visitadas[c.id] != true).toList();
+    }
+
     if (query.isNotEmpty) {
       resultado = resultado.where((c) => c.nome.toLowerCase().contains(query)).toList();
     }
+
     resultado.sort((a, b) =>
     _ordemAZ ? a.nome.compareTo(b.nome) : b.nome.compareTo(a.nome));
 
@@ -110,6 +124,45 @@ class _ChecklistPageState extends State<ChecklistPage> {
     if (_salvando.contains(cidade.id)) return;
 
     final eraVisitada = _visitadas[cidade.id] ?? false;
+
+    if (eraVisitada) {
+      final confirmar = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text(
+            'Remover visita',
+            style: TextStyle(fontWeight: FontWeight.w600, color: Colors.black87),
+          ),
+          content: Text(
+            'Tem certeza que deseja desmarcar ${cidade.nome} das suas cidades visitadas?',
+            style: const TextStyle(color: Colors.black54),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text(
+                'Cancelar',
+                style: TextStyle(color: Colors.black54, fontWeight: FontWeight.w500),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFEF4B4F),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Desmarcar', style: TextStyle(fontWeight: FontWeight.w600)),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmar != true) return;
+    }
 
     setState(() {
       _visitadas[cidade.id] = !eraVisitada;
@@ -134,7 +187,7 @@ class _ChecklistPageState extends State<ChecklistPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Erro ao salvar: ${e.toString().replaceFirst('Exception: ', '')}'),
-            backgroundColor: const Color(0xFFE84040),
+            backgroundColor: const Color(0xFFEF4B4F),
           ),
         );
       }
@@ -158,20 +211,14 @@ class _ChecklistPageState extends State<ChecklistPage> {
               const SizedBox(height: 12),
               Container(
                 width: 40, height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.black12,
-                  borderRadius: BorderRadius.circular(2),
-                ),
+                decoration: BoxDecoration(color: Colors.black12, borderRadius: BorderRadius.circular(2)),
               ),
               const SizedBox(height: 16),
-              const Text('Filtrar por Região',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              const Text('Filtrar por Região', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
               const Divider(),
               ListTile(
                 leading: Icon(
-                  _regiaoSelecionada == null
-                      ? Icons.radio_button_checked
-                      : Icons.radio_button_off,
+                  _regiaoSelecionada == null ? Icons.radio_button_checked : Icons.radio_button_off,
                   color: const Color(0xFF1F918B),
                 ),
                 title: const Text('Todas as regiões'),
@@ -183,9 +230,7 @@ class _ChecklistPageState extends State<ChecklistPage> {
               ),
               ..._regioes.map((r) => ListTile(
                 leading: Icon(
-                  _regiaoSelecionada == r
-                      ? Icons.radio_button_checked
-                      : Icons.radio_button_off,
+                  _regiaoSelecionada == r ? Icons.radio_button_checked : Icons.radio_button_off,
                   color: const Color(0xFF1F918B),
                 ),
                 title: Text(r),
@@ -203,6 +248,70 @@ class _ChecklistPageState extends State<ChecklistPage> {
     );
   }
 
+  void _abrirFiltroVisita() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 12),
+              Container(
+                width: 40, height: 4,
+                decoration: BoxDecoration(color: Colors.black12, borderRadius: BorderRadius.circular(2)),
+              ),
+              const SizedBox(height: 16),
+              const Text('Filtrar por Status', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              const Divider(),
+              ListTile(
+                leading: Icon(
+                  _filtroVisita == FiltroVisita.todos ? Icons.radio_button_checked : Icons.radio_button_off,
+                  color: const Color(0xFF1F918B),
+                ),
+                title: const Text('Todas as cidades'),
+                onTap: () {
+                  setState(() => _filtroVisita = FiltroVisita.todos);
+                  _filtrar();
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: Icon(
+                  _filtroVisita == FiltroVisita.visitados ? Icons.radio_button_checked : Icons.radio_button_off,
+                  color: const Color(0xFF1F918B),
+                ),
+                title: const Text('Apenas Visitadas'),
+                onTap: () {
+                  setState(() => _filtroVisita = FiltroVisita.visitados);
+                  _filtrar();
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: Icon(
+                  _filtroVisita == FiltroVisita.naoVisitados ? Icons.radio_button_checked : Icons.radio_button_off,
+                  color: const Color(0xFF1F918B),
+                ),
+                title: const Text('Apenas Não Visitadas'),
+                onTap: () {
+                  setState(() => _filtroVisita = FiltroVisita.naoVisitados);
+                  _filtrar();
+                  Navigator.pop(context);
+                },
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final total = _todasCidades.length;
@@ -211,63 +320,78 @@ class _ChecklistPageState extends State<ChecklistPage> {
 
     return Column(
       children: [
-        _ProgressHeader(marcadas: marcadas, total: total, progresso: progresso),
+        _ProgressHeaderCard(marcadas: marcadas, total: total, progresso: progresso),
 
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
           child: Column(
             children: [
-              TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Buscar cidades...',
-                  hintStyle: const TextStyle(color: Colors.black38, fontSize: 14),
-                  prefixIcon: const Icon(Icons.search, color: Colors.black38, size: 20),
-                  filled: true,
-                  fillColor: Colors.white,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Color(0xFF1F918B), width: 1.5),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: TextField(
+                  controller: _searchController,
+                  decoration: const InputDecoration(
+                    hintText: 'Buscar cidades...',
+                    hintStyle: TextStyle(color: Colors.black38, fontSize: 15),
+                    prefixIcon: Icon(Icons.search, color: Color(0xFF1F918B), size: 22),
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(vertical: 14),
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  _FilterChipButton(
-                    icon: Icons.sort_by_alpha,
-                    label: _ordemAZ ? 'A - Z' : 'Z - A',
-                    onTap: _toggleOrdem,
-                    active: false,
-                  ),
-                  const SizedBox(width: 8),
-                  _FilterChipButton(
-                    icon: Icons.map_outlined,
-                    label: _regiaoSelecionada ?? 'Filtrar por Região',
-                    onTap: _abrirFiltroRegiao,
-                    active: _regiaoSelecionada != null,
-                  ),
-                ],
+              const SizedBox(height: 12),
+
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                child: Row(
+                  children: [
+                    _FilterChipButton(
+                      icon: Icons.sort_by_alpha,
+                      label: _ordemAZ ? 'A - Z' : 'Z - A',
+                      onTap: _toggleOrdem,
+                      active: false,
+                    ),
+                    const SizedBox(width: 8),
+                    _FilterChipButton(
+                      icon: Icons.map_outlined,
+                      label: _regiaoSelecionada ?? 'Região',
+                      onTap: _abrirFiltroRegiao,
+                      active: _regiaoSelecionada != null,
+                    ),
+                    const SizedBox(width: 8),
+                    _FilterChipButton(
+                      icon: Icons.checklist_rounded,
+                      label: _filtroVisita == FiltroVisita.todos
+                          ? 'Status'
+                          : _filtroVisita == FiltroVisita.visitados
+                          ? 'Visitados'
+                          : 'Não Visitados',
+                      onTap: _abrirFiltroVisita,
+                      active: _filtroVisita != FiltroVisita.todos,
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
         ),
 
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
 
         Expanded(
           child: _loading
-              ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFF1F918B)))
+              ? const Center(child: CircularProgressIndicator(color: Color(0xFF1F918B)))
               : _erro != null
               ? _ErroView(mensagem: _erro!, onRetry: _carregarTudo)
               : _cidadesFiltradas.isEmpty
@@ -275,13 +399,14 @@ class _ChecklistPageState extends State<ChecklistPage> {
               child: Text('Nenhuma cidade encontrada.',
                   style: TextStyle(color: Colors.black38)))
               : ListView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+            physics: const BouncingScrollPhysics(),
             itemCount: _cidadesFiltradas.length,
             itemBuilder: (_, i) {
               final cidade = _cidadesFiltradas[i];
               final visitada = _visitadas[cidade.id] ?? false;
               final salvando = _salvando.contains(cidade.id);
-              return _CidadeItem(
+              return _CidadeItemCard(
                 cidade: cidade,
                 marcada: visitada,
                 salvando: salvando,
@@ -295,12 +420,12 @@ class _ChecklistPageState extends State<ChecklistPage> {
   }
 }
 
-class _ProgressHeader extends StatelessWidget {
+class _ProgressHeaderCard extends StatelessWidget {
   final int marcadas;
   final int total;
   final double progresso;
 
-  const _ProgressHeader({
+  const _ProgressHeaderCard({
     required this.marcadas,
     required this.total,
     required this.progresso,
@@ -309,38 +434,73 @@ class _ProgressHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: double.infinity,
-      color: const Color(0xFFF2F2F2),
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          RichText(
-            text: TextSpan(
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: Colors.black87,
-              ),
-              children: [
-                const TextSpan(text: 'Você completou '),
-                TextSpan(
-                  text: '${(progresso * 100).toStringAsFixed(0)}%',
-                  style: const TextStyle(decoration: TextDecoration.underline),
-                ),
-                const TextSpan(text: ' do RS!'),
-              ],
-            ),
+      margin: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
           ),
-          const SizedBox(height: 8),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Seu Progresso',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black54,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '$marcadas de $total',
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1F918B).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '${(progresso * 100).toStringAsFixed(0)}%',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF1F918B),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
           ClipRRect(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(10),
             child: LinearProgressIndicator(
               value: progresso,
-              minHeight: 14,
-              backgroundColor: const Color(0xFFDDDDDD),
-              valueColor:
-              const AlwaysStoppedAnimation<Color>(Color(0xFF1F918B)),
+              minHeight: 10,
+              backgroundColor: const Color(0xFFF2F2F2),
+              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF1F918B)),
             ),
           ),
         ],
@@ -348,7 +508,6 @@ class _ProgressHeader extends StatelessWidget {
     );
   }
 }
-
 
 class _FilterChipButton extends StatelessWidget {
   final IconData icon;
@@ -369,20 +528,24 @@ class _FilterChipButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
+          color: active ? const Color(0xFF1F918B).withOpacity(0.1) : Colors.white,
+          borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: active ? const Color(0xFF1F918B) : const Color(0xFFDDDDDD),
           ),
         ),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisSize: MainAxisSize.min, // Garante que ocupe só o necessário
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, size: 16, color: color),
-            const SizedBox(width: 6),
-            Text(label, style: TextStyle(fontSize: 13, color: color)),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: color),
+            ),
           ],
         ),
       ),
@@ -390,14 +553,13 @@ class _FilterChipButton extends StatelessWidget {
   }
 }
 
-
-class _CidadeItem extends StatelessWidget {
+class _CidadeItemCard extends StatelessWidget {
   final Cidade cidade;
   final bool marcada;
   final bool salvando;
   final VoidCallback onToggle;
 
-  const _CidadeItem({
+  const _CidadeItemCard({
     required this.cidade,
     required this.marcada,
     required this.salvando,
@@ -408,44 +570,83 @@ class _CidadeItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: salvando ? null : onToggle,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 2),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: marcada ? const Color(0xFF1F918B).withOpacity(0.05) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: marcada ? const Color(0xFF1F918B).withOpacity(0.4) : Colors.transparent,
+            width: 1.5,
+          ),
+          boxShadow: [
+            if (!marcada)
+              BoxShadow(
+                color: Colors.black.withOpacity(0.03),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+          ],
+        ),
         child: Row(
           children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    cidade.nome,
+                    style: TextStyle(
+                      fontSize: 17,
+                      color: marcada ? const Color(0xFF1F918B) : Colors.black87,
+                      fontWeight: marcada ? FontWeight.w700 : FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.map_rounded,
+                        size: 12,
+                        color: marcada ? const Color(0xFF1F918B).withOpacity(0.6) : Colors.black38,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        cidade.regiao,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: marcada ? const Color(0xFF1F918B).withOpacity(0.8) : Colors.black45,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 14),
             AnimatedContainer(
               duration: const Duration(milliseconds: 180),
-              width: 28,
-              height: 28,
+              width: 32,
+              height: 32,
               decoration: BoxDecoration(
-                color: marcada ? const Color(0xFF1F918B) : Colors.transparent,
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(
-                  color: marcada ? const Color(0xFF1F918B) : Colors.black26,
-                  width: 1.8,
-                ),
+                color: marcada ? const Color(0xFF1F918B) : const Color(0xFFF2F2F2),
+                shape: BoxShape.circle,
               ),
               child: salvando
                   ? const Padding(
-                padding: EdgeInsets.all(5),
+                padding: EdgeInsets.all(8.0),
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
                   color: Color(0xFF1F918B),
                 ),
               )
-                  : marcada
-                  ? const Icon(Icons.check, size: 18, color: Colors.white)
-                  : const Icon(Icons.close, size: 16, color: Colors.black26),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Text(
-                cidade.nome,
-                style: TextStyle(
-                  fontSize: 17,
-                  color: marcada ? Colors.black87 : Colors.black54,
-                  fontWeight: marcada ? FontWeight.w500 : FontWeight.w400,
-                ),
+                  : Icon(
+                Icons.check_rounded,
+                size: 20,
+                color: marcada ? Colors.white : Colors.black26,
               ),
             ),
           ],
@@ -454,7 +655,6 @@ class _CidadeItem extends StatelessWidget {
     );
   }
 }
-
 
 class _ErroView extends StatelessWidget {
   final String mensagem;

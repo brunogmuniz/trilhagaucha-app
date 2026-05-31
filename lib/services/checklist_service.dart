@@ -94,4 +94,25 @@ class ChecklistService {
       throw Exception('Erro ao remover visita: ${response.statusCode}');
     }
   }
+
+  Future<String?> buscarUltimaCidadeVisitada(String uuid) async {
+    final headers = await SessionService.getHeaders();
+
+    final uri = Uri.parse('$_baseUrl/checklists/$uuid/ultima-visita');
+
+    final response = await http.get(uri, headers: headers);
+    _verificarAuth(response);
+
+    if (response.statusCode == 200) {
+      if (response.body.isEmpty) return null;
+
+      final body = jsonDecode(utf8.decode(response.bodyBytes));
+      return body['cidadeNome'] as String?;
+    } else if (response.statusCode == 404 || response.statusCode == 204) {
+      return null;
+    } else {
+      throw Exception('Erro ao buscar última cidade visitada');
+    }
+  }
+
 }

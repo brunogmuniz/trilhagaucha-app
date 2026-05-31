@@ -14,7 +14,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _currentIndex = 0;
+  int _currentIndex = 2;
 
   final List<Widget> _pages = const [
     StatsPage(),
@@ -60,23 +60,43 @@ class _AppHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final topPadding = MediaQuery.of(context).padding.top;
 
-    return SizedBox(
+    return Container(
       width: double.infinity,
       height: 90 + topPadding,
-      child: Stack(
-        children: [
-          // Faixas diagonais via CustomPaint
-          Positioned.fill(
-            child: CustomPaint(
-              painter: _HeaderStripesPainter(),
-            ),
+      padding: EdgeInsets.only(top: topPadding),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.vertical(
+          bottom: Radius.circular(20),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
-          Positioned.fill(
-            top: topPadding,
-            child: Center(
-              child: Image.asset(
-                'assets/images/logo.png',
-                height: 54,
+        ],
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Image.asset(
+            'assets/images/logo.png',
+            height: 48,
+          ),
+
+          Positioned(
+            bottom: 0,
+            left: 32,
+            right: 32,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: Row(
+                children: [
+                  Expanded(child: Container(height: 3, color: const Color(0xFF1F918B))),
+                  Expanded(child: Container(height: 3, color: const Color(0xFFFFEA61))),
+                  Expanded(child: Container(height: 3, color: const Color(0xFFEF4B4F))),
+                ],
               ),
             ),
           ),
