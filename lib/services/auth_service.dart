@@ -7,7 +7,7 @@ import '../config/api_config.dart';
 class AuthService {
 
   Future<Usuario> login(String email, String senha) async {
-    final uri = Uri.parse('${ApiConfig.baseUrl}/auth/login');
+    final uri = Uri.parse('${ApiConfig.baseUrl}auth/login');
 
     final response = await http.post(
       uri,
@@ -59,7 +59,7 @@ class AuthService {
     required String email,
     required String senha,
   }) async {
-    final uri = Uri.parse('${ApiConfig.baseUrl}/auth/cadastrar');
+    final uri = Uri.parse('${ApiConfig.baseUrl}auth/cadastrar');
 
     final response = await http.post(
       uri,
@@ -81,7 +81,7 @@ class AuthService {
   Future<Usuario> buscarUsuarioPorUuid(String uuid) async {
     final headers = await SessionService.getHeaders();
 
-    final uri = Uri.parse('${ApiConfig.baseUrl}/usuarios/$uuid');
+    final uri = Uri.parse('${ApiConfig.baseUrl}usuarios/$uuid');
 
     final response = await http.get(uri, headers: headers);
 

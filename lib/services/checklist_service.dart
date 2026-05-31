@@ -44,7 +44,7 @@ class ChecklistService {
     required int cidadeId,
   }) async {
     final headers = await SessionService.getHeaders();
-    final uri = Uri.parse('${ApiConfig.baseUrl}/checklists/visitar');
+    final uri = Uri.parse('${ApiConfig.baseUrl}checklists/visitar');
 
     final body = {
       'usuarioUuid': usuarioUuid,
@@ -78,7 +78,7 @@ class ChecklistService {
     final headers = await SessionService.getHeaders();
 
     final uri = Uri.parse(
-      '${ApiConfig.baseUrl}/checklists/removerVisita/$cidadeId/$usuarioUuid',
+      '${ApiConfig.baseUrl}checklists/removerVisita/$cidadeId/$usuarioUuid',
     );
 
     print('>>> DELETE $uri');
@@ -98,7 +98,7 @@ class ChecklistService {
   Future<String?> buscarUltimaCidadeVisitada(String uuid) async {
     final headers = await SessionService.getHeaders();
 
-    final uri = Uri.parse('${ApiConfig.baseUrl}/checklists/$uuid/ultima-visita');
+    final uri = Uri.parse('${ApiConfig.baseUrl}checklists/$uuid/ultima-visita');
 
     final response = await http.get(uri, headers: headers);
 
