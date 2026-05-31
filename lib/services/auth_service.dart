@@ -4,8 +4,10 @@ import '../models/usuario.dart';
 import 'session_service.dart';
 
 class AuthService {
+ // static const String _baseUrl = 'http://10.0.2.2:8081';
   static const String _baseUrl = 'http://localhost:8081';
 
+  // ── LOGIN ────────────────────────────────────────────────────────────────
   Future<Usuario> login(String email, String senha) async {
     final uri = Uri.parse('$_baseUrl/auth/login');
     final response = await http.post(
@@ -21,8 +23,11 @@ class AuthService {
 
       final token = json['token'] as String;
       final usuarioJson = json['usuario'] as Map<String, dynamic>;
-      final uuid = usuarioJson['uuid'] as String? ?? '';
-      final role = usuarioJson['roleUser'] as String? ?? 'USER';
+
+      final uuid = usuarioJson['id'] as String? ?? '';
+      final role = usuarioJson['role_USER'] as String? ?? 'USER';
+
+      print('>>> LOGIN OK | uuid: $uuid | role: $role');
 
       await SessionService.salvar(
         token: token,
@@ -47,6 +52,7 @@ class AuthService {
     }
   }
 
+  // ── CADASTRO ─────────────────────────────────────────────────────────────
   Future<void> cadastrar({
     required String nome,
     required String sobrenome,
@@ -71,6 +77,7 @@ class AuthService {
     }
   }
 
+  // ── BUSCAR USUÁRIO COMPLETO ───────────────────────────────────────────────
   Future<Usuario> buscarUsuarioPorUuid(String uuid) async {
     final headers = await SessionService.getHeaders();
     final uri = Uri.parse('$_baseUrl/usuarios/$uuid');
@@ -85,6 +92,7 @@ class AuthService {
     }
   }
 
+  // ── LOGOUT ───────────────────────────────────────────────────────────────
   Future<void> logout() async {
     await SessionService.limpar();
   }

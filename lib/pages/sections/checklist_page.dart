@@ -124,17 +124,16 @@ class _ChecklistPageState extends State<ChecklistPage> {
     try {
       if (eraVisitada) {
         await _checklistService.removerVisita(
-          usuarioId: _usuarioId,
+          usuarioUuid: _uuid,
           cidadeId: cidade.id,
         );
       } else {
         await _checklistService.registrarVisita(
-          usuarioId: _usuarioId,
+          usuarioUuid: _uuid,
           cidadeId: cidade.id,
         );
       }
     } catch (e) {
-      // Reverte em caso de erro
       setState(() => _visitadas[cidade.id] = eraVisitada);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

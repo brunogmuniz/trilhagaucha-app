@@ -1,7 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SessionService {
-  // ── Cache em memória (funciona sempre, inclusive no Windows sem Dev Mode) ──
+  // Cache em memória — preenchido ao salvar ou ao ler do disco
   static String? _token;
   static String? _uuid;
   static String? _email;
@@ -19,61 +19,53 @@ class SessionService {
     required String email,
     required String role,
   }) async {
-    // Salva em memória primeiro (sempre funciona)
     _token = token;
     _uuid  = uuid;
     _email = email;
     _role  = role;
 
-    // Tenta persistir no disco (pode falhar no Windows sem Dev Mode)
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_keyToken, token);
       await prefs.setString(_keyUuid, uuid);
       await prefs.setString(_keyEmail, email);
       await prefs.setString(_keyRole, role);
-    } catch (_) {
-      // Silencia erro — memória já está salva
+      print('>>> Sessão salva no disco | uuid: $uuid');
+    } catch (e) {
+      print('>>> shared_preferences indisponível, usando só memória: $e');
     }
   }
 
-  // ── LER ──────────────────────────────────────────────────────────────────
-  static Future<String?> getToken() async {
-    if (_token != null) return _token;
-    return _lerDoDisco(_keyToken);
-  }
+  // ── LER (memória → disco) ─────────────────────────────────────────────────
+  static Future<String?> getToken() async => _token ?? await _disco(_keyToken);
+  static Future<String?> getUuid()  async => _uuid  ?? await _disco(_keyUuid);
+  static Future<String?> getEmail() async => _email ?? await _disco(_keyEmail);
+  static Future<String?> getRole()  async => _role  ?? await _disco(_keyRole);
 
-  static Future<String?> getUuid() async {
-    if (_uuid != null) return _uuid;
-    return _lerDoDisco(_keyUuid);
-  }
-
-  static Future<String?> getEmail() async {
-    if (_email != null) return _email;
-    return _lerDoDisco(_keyEmail);
-  }
-
-  static Future<String?> getRole() async {
-    if (_role != null) return _role;
-    return _lerDoDisco(_keyRole);
-  }
-
-  static Future<String?> _lerDoDisco(String key) async {
+  static Future<String?> _disco(String key) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      return prefs.getString(key);
+      final val = prefs.getString(key);
+      // Preenche cache ao ler do disco
+      if (key == _keyToken) _token = val;
+      if (key == _keyUuid)  _uuid  = val;
+      if (key == _keyEmail) _email = val;
+      if (key == _keyRole)  _role  = val;
+      return val;
     } catch (_) {
       return null;
     }
   }
 
-  // ── VERIFICAR SE ESTÁ LOGADO ─────────────────────────────────────────────
+  // ── ESTÁ LOGADO ───────────────────────────────────────────────────────────
   static Future<bool> estaLogado() async {
     final token = await getToken();
-    return token != null && token.isNotEmpty;
+    final uuid  = await getUuid();
+    return token != null && token.isNotEmpty &&
+        uuid  != null && uuid.isNotEmpty;
   }
 
-  // ── LIMPAR (logout) ──────────────────────────────────────────────────────
+  // ── LIMPAR ────────────────────────────────────────────────────────────────
   static Future<void> limpar() async {
     _token = null;
     _uuid  = null;
@@ -82,14 +74,11 @@ class SessionService {
 
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.remove(_keyToken);
-      await prefs.remove(_keyUuid);
-      await prefs.remove(_keyEmail);
-      await prefs.remove(_keyRole);
+      await prefs.clear();
     } catch (_) {}
   }
 
-  // ── HEADERS PRONTOS PARA REQUISIÇÕES ─────────────────────────────────────
+  // ── HEADERS ───────────────────────────────────────────────────────────────
   static Future<Map<String, String>> getHeaders() async {
     final token = await getToken();
     return {

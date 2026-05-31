@@ -10,11 +10,24 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  // Chave global para navegar para login de qualquer lugar do app
+  static final navigatorKey = GlobalKey<NavigatorState>();
+
+  // Chama isso quando receber 401/403 em qualquer requisição
+  static Future<void> forcarLogin() async {
+    await SessionService.limpar();
+    navigatorKey.currentState?.pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginPage()),
+          (_) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Trilha Gaúcha',
       debugShowCheckedModeBanner: false,
+      navigatorKey: navigatorKey,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.red),
         useMaterial3: true,

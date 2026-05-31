@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/cidade.dart';
 
 class CidadeService {
+  //static const String _baseUrl = 'http://10.0.2.2:8081';
   static const String _baseUrl = 'http://localhost:8081';
 
   Future<List<Cidade>> listarCidades() async {
