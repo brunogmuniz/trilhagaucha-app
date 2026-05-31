@@ -60,155 +60,181 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF2A2A2A),
-      body: Center(
-        child: SingleChildScrollView(
-          child: Container(
-            margin: const EdgeInsets.all(24),
-            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 36),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Image.asset('assets/images/logo.png', height: 80),
-                const SizedBox(height: 24),
-
-                const Text(
-                  'Login',
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.black87,
-                  ),
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight - 48, // 48 do padding vertical
                 ),
-                const SizedBox(height: 28),
-
-                _CampoTexto(
-                  label: 'Email',
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                ),
-                const SizedBox(height: 16),
-
-                _CampoTexto(
-                  label: 'Senha',
-                  controller: _senhaController,
-                  obscureText: !_senhaVisivel,
-                  sufixIcon: IconButton(
-                    icon: Icon(
-                      _senhaVisivel ? Icons.visibility_off : Icons.visibility,
-                      color: Colors.black54,
-                      size: 20,
-                    ),
-                    onPressed: () =>
-                        setState(() => _senhaVisivel = !_senhaVisivel),
-                  ),
-                ),
-                const SizedBox(height: 8),
-
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: GestureDetector(
-                    onTap: () {
-                      // TODO: recuperação de senha
-                    },
-                    child: const Text(
-                      'Esqueceu sua senha?',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.black54,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Mensagem de erro
-                if (_erro != null) ...[
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFEBEB),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: const Color(0xFFE84040)),
-                    ),
-                    child: Text(
-                      _erro!,
-                      style: const TextStyle(
-                          fontSize: 13, color: Color(0xFFE84040)),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: _carregando ? null : _entrar,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFE84040),
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor:
-                      const Color(0xFFE84040).withOpacity(0.6),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: _carregando
-                        ? const SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2.5,
-                      ),
-                    )
-                        : const Text(
-                      'Entrar',
-                      style: TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.w500),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      'Ainda não possui conta? ',
-                      style: TextStyle(fontSize: 13, color: Colors.black54),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const RegisterPage()),
-                        );
-                      },
-                      child: const Text(
-                        'Registrar-se.',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.black54,
-                          decoration: TextDecoration.underline,
+                child: IntrinsicHeight(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 40),
+                      Center(
+                        child: Image.asset(
+                          'assets/images/logo.png',
+                          height: 80,
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 50),
+
+                      const Text(
+                        'Bem-vindo de volta!',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black87,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Faça login para continuar sua jornada.',
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: Colors.black54,
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+
+                      _CampoTexto(
+                        label: 'E-mail',
+                        hint: 'exemplo@email.com',
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        prefixIcon: Icons.email_outlined,
+                      ),
+                      const SizedBox(height: 20),
+
+                      _CampoTexto(
+                        label: 'Senha',
+                        hint: 'Sua senha segura',
+                        controller: _senhaController,
+                        obscureText: !_senhaVisivel,
+                        prefixIcon: Icons.lock_outline,
+                        sufixIcon: IconButton(
+                          icon: Icon(
+                            _senhaVisivel ? Icons.visibility_off : Icons.visibility,
+                            color: Colors.black45,
+                            size: 22,
+                          ),
+                          onPressed: () => setState(() => _senhaVisivel = !_senhaVisivel),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: GestureDetector(
+                          onTap: () {
+                            // TODO: recuperação de senha
+                          },
+                          child: const Text(
+                            'Esqueceu sua senha?',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF1F918B),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+
+                      if (_erro != null) ...[
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFEBEB),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: const Color(0xFFE84040).withOpacity(0.5)),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.error_outline, color: Color(0xFFE84040), size: 20),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  _erro!,
+                                  style: const TextStyle(fontSize: 13, color: Color(0xFFE84040)),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                      ],
+
+                      SizedBox(
+                        width: double.infinity,
+                        height: 54,
+                        child: ElevatedButton(
+                          onPressed: _carregando ? null : _entrar,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF1F918B), // Cor principal do app
+                            foregroundColor: Colors.white,
+                            disabledBackgroundColor: const Color(0xFF1F918B).withOpacity(0.6),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          child: _carregando
+                              ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                          )
+                              : const Text(
+                            'Entrar',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ),
+
+                      const Spacer(), // Empurra o botão de registro para o final da tela
+
+                      Padding(
+                        padding: const EdgeInsets.only(top: 24, bottom: 16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              'Ainda não possui conta? ',
+                              style: TextStyle(fontSize: 14, color: Colors.black54),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const RegisterPage()),
+                                );
+                              },
+                              child: const Text(
+                                'Cadastre-se.',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF1F918B),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -218,14 +244,18 @@ class _LoginPageState extends State<LoginPage> {
 
 class _CampoTexto extends StatelessWidget {
   final String label;
+  final String hint;
   final TextEditingController controller;
   final bool obscureText;
   final TextInputType keyboardType;
+  final IconData prefixIcon;
   final Widget? sufixIcon;
 
   const _CampoTexto({
     required this.label,
+    required this.hint,
     required this.controller,
+    required this.prefixIcon,
     this.obscureText = false,
     this.keyboardType = TextInputType.text,
     this.sufixIcon,
@@ -236,32 +266,36 @@ class _CampoTexto extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: const TextStyle(fontSize: 14, color: Colors.black87)),
-        const SizedBox(height: 6),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black87),
+        ),
+        const SizedBox(height: 8),
         TextField(
           controller: controller,
           obscureText: obscureText,
           keyboardType: keyboardType,
+          style: const TextStyle(fontSize: 15, color: Colors.black87),
           decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: const TextStyle(color: Colors.black38, fontSize: 14),
             filled: true,
-            fillColor: const Color(0xFFF2F2F2),
+            fillColor: const Color(0xFFF8F9FA), // Cinza bem clarinho
+            prefixIcon: Icon(prefixIcon, color: Colors.black45, size: 22),
             suffixIcon: sufixIcon,
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Color(0xFFCCCCCC)),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Color(0xFFCCCCCC)),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFEEEEEE), width: 1.5),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide:
-              const BorderSide(color: Color(0xFFE84040), width: 1.5),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFF1F918B), width: 1.5),
             ),
-            contentPadding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           ),
         ),
       ],
