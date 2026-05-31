@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class RotasPage extends StatelessWidget {
   const RotasPage({super.key});
@@ -103,8 +104,16 @@ class RotasPage extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      onPressed: () {
-                        // TODO: Implementar a chamada ao url_launcher com o link do seu Buy me a coffee
+                      onPressed: () async {
+                        final Uri url = Uri.parse(
+                          'https://buymeacoffee.com/trilhagaucha',
+                        );
+                        if (await canLaunchUrl(url)) {
+                          await launchUrl(
+                            url,
+                            mode: LaunchMode.externalApplication,
+                          );
+                        }
                       },
                       icon: const Icon(Icons.coffee_rounded, size: 20),
                       label: const Text(

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:url_launcher/url_launcher.dart';
 class StatsPage extends StatelessWidget {
   const StatsPage({super.key});
 
@@ -22,7 +22,7 @@ class StatsPage extends StatelessWidget {
               child: const Icon(
                 Icons.insights_rounded,
                 size: 64,
-                color: Color(0xFFEF4B4F), // Vermelho
+                color: Color(0xFFEF4B4F),
               ),
             ),
             const SizedBox(height: 24),
@@ -50,7 +50,6 @@ class StatsPage extends StatelessWidget {
 
             const SizedBox(height: 48),
 
-            // Card de Apoio (Buy me a coffee)
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
@@ -103,8 +102,17 @@ class StatsPage extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      onPressed: () {
-                        // TODO: Implementar a chamada ao url_launcher com o link do seu Buy me a coffee
+                      onPressed: () async {
+                        final Uri url = Uri.parse(
+                          'https://buymeacoffee.com/trilhagaucha',
+                        );
+
+                        if (await canLaunchUrl(url)) {
+                          await launchUrl(
+                            url,
+                            mode: LaunchMode.externalApplication,
+                          );
+                        }
                       },
                       icon: const Icon(Icons.coffee_rounded, size: 20),
                       label: const Text(

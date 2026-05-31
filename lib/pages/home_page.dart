@@ -16,12 +16,14 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 2;
 
-  final List<Widget> _pages = const [
-    StatsPage(),
-    RotasPage(),
-    ChecklistPage(),
-    PerfilPage(),
-    MenuPage(),
+  Key _perfilKey = UniqueKey();
+
+  List<Widget> get _pages => [
+    const StatsPage(),
+    const RotasPage(),
+    const ChecklistPage(),
+    PerfilPage(key: _perfilKey),
+    const MenuPage(),
   ];
 
   @override
@@ -40,7 +42,6 @@ class _HomePageState extends State<HomePage> {
         child: _AppHeader(),
       ),
 
-
       body: IndexedStack(
         index: _currentIndex,
         children: _pages,
@@ -48,12 +49,18 @@ class _HomePageState extends State<HomePage> {
 
       bottomNavigationBar: _BottomNav(
         currentIndex: _currentIndex,
-        onTap: (i) => setState(() => _currentIndex = i),
+        onTap: (i) {
+          setState(() {
+            _currentIndex = i;
+            if (i == 3) {
+              _perfilKey = UniqueKey();
+            }
+          });
+        },
       ),
     );
   }
 }
-
 
 class _AppHeader extends StatelessWidget {
   @override
@@ -84,7 +91,6 @@ class _AppHeader extends StatelessWidget {
             'assets/images/logo.png',
             height: 48,
           ),
-
           Positioned(
             bottom: 0,
             left: 32,
@@ -106,52 +112,8 @@ class _AppHeader extends StatelessWidget {
   }
 }
 
-class _HeaderStripesPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-
-    final teal = Paint()..color = const Color(0xFF1F918B)..style = PaintingStyle.fill;
-    final tealPath = Path()
-      ..moveTo(0, 0)
-      ..lineTo(w, 0)
-      ..lineTo(w, h * 0.42)
-      ..lineTo(0, h * 0.58)
-      ..close();
-    canvas.drawPath(tealPath, teal);
-
-    final red = Paint()..color = const Color(0xFFEF4B4F)..style = PaintingStyle.fill;
-    final redPath = Path()
-      ..moveTo(0, h * 0.58)
-      ..lineTo(w, h * 0.42)
-      ..lineTo(w, h * 0.75)
-      ..lineTo(0, h * 0.88)
-      ..close();
-    canvas.drawPath(redPath, red);
-
-    final yellow = Paint()..color = const Color(0xFFFFEA61)..style = PaintingStyle.fill;
-    final yellowPath = Path()
-      ..moveTo(0, h * 0.88)
-      ..lineTo(w, h * 0.75)
-      ..lineTo(w, h)
-      ..lineTo(0, h)
-      ..close();
-    canvas.drawPath(yellowPath, yellow);
-  }
-
-  @override
-  bool shouldRepaint(_HeaderStripesPainter old) => false;
-}
-
 
 enum _NavIcon { stats, rotas, checklist, perfil, menu }
-
-class _NavItem {
-  final _NavIcon icon;
-  final String label;
-  const _NavItem({required this.icon, required this.label});
-}
 
 class _BottomNav extends StatelessWidget {
   final int currentIndex;
@@ -159,125 +121,125 @@ class _BottomNav extends StatelessWidget {
 
   const _BottomNav({required this.currentIndex, required this.onTap});
 
-  static const _items = [
-    _NavItem(icon: _NavIcon.stats,     label: 'Stats'),
-    _NavItem(icon: _NavIcon.rotas,     label: 'Rotas'),
-    _NavItem(icon: _NavIcon.checklist, label: 'Checklist'),
-    _NavItem(icon: _NavIcon.perfil,    label: 'Perfil'),
-    _NavItem(icon: _NavIcon.menu,      label: 'Menu'),
-  ];
-
   @override
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.of(context).padding.bottom;
+    const double barHeight = 70.0;
+    const double buttonOverflow = 28.0;
 
     return Container(
-      color: Colors.white,
-      child: SizedBox(
-        height: 68 + bottomPadding,
+      height: barHeight + buttonOverflow + bottomPadding,
+      color: Colors.transparent,
+      child: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          Container(
+            height: barHeight + bottomPadding,
+            padding: EdgeInsets.only(bottom: bottomPadding),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.06),
+                  blurRadius: 20,
+                  offset: const Offset(0, -6),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildSideTab(0, _NavIcon.stats, 'Stats'),
+                _buildSideTab(1, _NavIcon.rotas, 'Rotas'),
+                const SizedBox(width: 76),
+                _buildSideTab(3, _NavIcon.perfil, 'Perfil'),
+                _buildSideTab(4, _NavIcon.menu, 'Menu'),
+              ],
+            ),
+          ),
+
+          Positioned(
+            top: 0,
+            child: GestureDetector(
+              onTap: () => onTap(2),
+              child: _buildCenterButton(currentIndex == 2),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSideTab(int index, _NavIcon icon, String label) {
+    final isActive = currentIndex == index;
+    final color = isActive ? const Color(0xFF1F918B) : const Color(0xFF9E9E9E);
+
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => onTap(index),
+        behavior: HitTestBehavior.opaque,
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(
-              height: 68,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: List.generate(_items.length, (i) {
-                  final selected = i == currentIndex;
-                  final item = _items[i];
-                  return Expanded(
-                    child: GestureDetector(
-                      onTap: () => onTap(i),
-                      behavior: HitTestBehavior.opaque,
-                      child: selected
-                          ? _ActiveTile(item: item)
-                          : _InactiveTile(item: item),
-                    ),
-                  );
-                }),
+
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOut,
+              height: isActive ? 28 : 24,
+              alignment: Alignment.center,
+              child: _NavIconWidget(icon: icon, color: color, size: isActive ? 26 : 24),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                color: color,
               ),
             ),
-            SizedBox(height: bottomPadding),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              margin: const EdgeInsets.only(top: 4),
+              height: 4,
+              width: isActive ? 4 : 0,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+              ),
+            ),
           ],
         ),
       ),
     );
   }
-}
 
-class _ActiveTile extends StatelessWidget {
-  final _NavItem item;
-  const _ActiveTile({required this.item});
-
-  static const _activeColor = Color(0xFF1F918B);
-
-  @override
-  Widget build(BuildContext context) {
-    return OverflowBox(
-      alignment: Alignment.bottomCenter,
-      maxHeight: 110,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 220),
-            curve: Curves.easeOut,
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: const BoxDecoration(
-              color: _activeColor,
-              borderRadius: BorderRadius.only(
-                topLeft:     Radius.circular(40),
-                topRight:    Radius.circular(40),
-                bottomLeft:  Radius.circular(18),
-                bottomRight: Radius.circular(18),
-              ),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _NavIconWidget(icon: item.icon, color: Colors.white, size: 32),
-                const SizedBox(height: 4),
-                Text(
-                  item.label,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    letterSpacing: 0.2,
-                  ),
-                ),
-              ],
-            ),
+  Widget _buildCenterButton(bool isActive) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOut,
+      width: 72,
+      height: 72,
+      decoration: BoxDecoration(
+        color: const Color(0xFF1F918B),
+        shape: BoxShape.circle,
+        border: Border.all(color: const Color(0xFFF2F2F2), width: 6), // Borda cinza do fundo
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF1F918B).withOpacity(isActive ? 0.6 : 0.3),
+            blurRadius: isActive ? 16 : 8,
+            offset: const Offset(0, 6),
           ),
-          const SizedBox(height: 6),
         ],
       ),
-    );
-  }
-}
-
-class _InactiveTile extends StatelessWidget {
-  final _NavItem item;
-  const _InactiveTile({required this.item});
-
-  static const _inactiveColor = Color(0xFF9E9E9E);
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _NavIconWidget(icon: item.icon, color: _inactiveColor, size: 30),
-        const SizedBox(height: 4),
-        Text(
-          item.label,
-          style: const TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w400,
-            color: _inactiveColor,
-          ),
+      child: const Center(
+        child: _NavIconWidget(
+          icon: _NavIcon.checklist,
+          color: Colors.white,
+          size: 32,
         ),
-      ],
+      ),
     );
   }
 }
@@ -313,7 +275,6 @@ class _NavIconWidget extends StatelessWidget {
   }
 }
 
-// Stats
 class _StatsPainter extends CustomPainter {
   final Color color;
   _StatsPainter({required this.color});
