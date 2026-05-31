@@ -44,7 +44,7 @@ class ChecklistService {
     required int cidadeId,
   }) async {
     final headers = await SessionService.getHeaders();
-    final uri = Uri.parse('${ApiConfig.baseUrl}checklists/visitar');
+    final uri = Uri.parse('${ApiConfig.baseUrl}/checklists/visitar');
 
     final body = {
       'usuarioUuid': usuarioUuid,

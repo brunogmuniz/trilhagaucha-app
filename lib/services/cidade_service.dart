@@ -6,7 +6,7 @@ import '../config/api_config.dart';
 class CidadeService {
 
   Future<List<Cidade>> listarCidades() async {
-    final uri = Uri.parse('${ApiConfig.baseUrl}cidades/listar');
+    final uri = Uri.parse('${ApiConfig.baseUrl}/cidades/listar');
     final response = await http.get(uri);
 
     if (response.statusCode == 200) {
@@ -19,7 +19,7 @@ class CidadeService {
   }
 
   Future<List<Cidade>> listarPorRegiao(String regiao) async {
-    final uri = Uri.parse('${ApiConfig.baseUrl}cidades/regiao/$regiao');
+    final uri = Uri.parse('${ApiConfig.baseUrl}/cidades/regiao/$regiao');
     final response = await http.get(uri);
 
     if (response.statusCode == 200) {
