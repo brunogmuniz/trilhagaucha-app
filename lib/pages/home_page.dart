@@ -26,7 +26,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // Remove a linha/sombra padrão do sistema na status bar
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.light,
@@ -36,19 +35,17 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: const Color(0xFFF2F2F2),
       extendBodyBehindAppBar: false,
 
-      // ── HEADER ────────────────────────────────────────────────────
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(90),
         child: _AppHeader(),
       ),
 
-      // ── CONTEÚDO ──────────────────────────────────────────────────
+
       body: IndexedStack(
         index: _currentIndex,
         children: _pages,
       ),
 
-      // ── BOTTOM NAV ────────────────────────────────────────────────
       bottomNavigationBar: _BottomNav(
         currentIndex: _currentIndex,
         onTap: (i) => setState(() => _currentIndex = i),
@@ -57,9 +54,6 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// HEADER — faixas diagonais + logo centralizado
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _AppHeader extends StatelessWidget {
   @override
@@ -77,7 +71,6 @@ class _AppHeader extends StatelessWidget {
               painter: _HeaderStripesPainter(),
             ),
           ),
-          // Logo centralizado (respeitando a status bar)
           Positioned.fill(
             top: topPadding,
             child: Center(
@@ -99,7 +92,6 @@ class _HeaderStripesPainter extends CustomPainter {
     final w = size.width;
     final h = size.height;
 
-    // ── Faixa 1: teal (topo) ──────────────────────────────────────
     final teal = Paint()..color = const Color(0xFF1F918B)..style = PaintingStyle.fill;
     final tealPath = Path()
       ..moveTo(0, 0)
@@ -109,7 +101,6 @@ class _HeaderStripesPainter extends CustomPainter {
       ..close();
     canvas.drawPath(tealPath, teal);
 
-    // ── Faixa 2: vermelho (meio) ───────────────────────────────────
     final red = Paint()..color = const Color(0xFFEF4B4F)..style = PaintingStyle.fill;
     final redPath = Path()
       ..moveTo(0, h * 0.58)
@@ -119,7 +110,6 @@ class _HeaderStripesPainter extends CustomPainter {
       ..close();
     canvas.drawPath(redPath, red);
 
-    // ── Faixa 3: amarelo (base) ────────────────────────────────────
     final yellow = Paint()..color = const Color(0xFFFFEA61)..style = PaintingStyle.fill;
     final yellowPath = Path()
       ..moveTo(0, h * 0.88)
@@ -134,9 +124,6 @@ class _HeaderStripesPainter extends CustomPainter {
   bool shouldRepaint(_HeaderStripesPainter old) => false;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// BOTTOM NAV
-// ─────────────────────────────────────────────────────────────────────────────
 
 enum _NavIcon { stats, rotas, checklist, perfil, menu }
 
@@ -165,7 +152,6 @@ class _BottomNav extends StatelessWidget {
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 
     return Container(
-      // sem border, sem elevation — cor sólida limpa
       color: Colors.white,
       child: SizedBox(
         height: 68 + bottomPadding,
@@ -190,7 +176,6 @@ class _BottomNav extends StatelessWidget {
                 }),
               ),
             ),
-            // Espaço seguro do home indicator (sem cor estranha)
             SizedBox(height: bottomPadding),
           ],
         ),
@@ -199,7 +184,6 @@ class _BottomNav extends StatelessWidget {
   }
 }
 
-// Item ativo — bolha que vaza para cima abraçando ícone + label
 class _ActiveTile extends StatelessWidget {
   final _NavItem item;
   const _ActiveTile({required this.item});
@@ -252,7 +236,6 @@ class _ActiveTile extends StatelessWidget {
   }
 }
 
-// Item inativo
 class _InactiveTile extends StatelessWidget {
   final _NavItem item;
   const _InactiveTile({required this.item});
@@ -279,9 +262,6 @@ class _InactiveTile extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ÍCONES CUSTOM
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _NavIconWidget extends StatelessWidget {
   final _NavIcon icon;
@@ -352,7 +332,6 @@ class _StatsPainter extends CustomPainter {
   bool shouldRepaint(_StatsPainter o) => o.color != color;
 }
 
-// Rotas
 class _RotasPainter extends CustomPainter {
   final Color color;
   _RotasPainter({required this.color});
@@ -399,7 +378,6 @@ class _RotasPainter extends CustomPainter {
   bool shouldRepaint(_RotasPainter o) => o.color != color;
 }
 
-// Checklist
 class _ChecklistPainter extends CustomPainter {
   final Color color;
   _ChecklistPainter({required this.color});
@@ -430,7 +408,6 @@ class _ChecklistPainter extends CustomPainter {
   bool shouldRepaint(_ChecklistPainter o) => o.color != color;
 }
 
-// Perfil
 class _PerfilPainter extends CustomPainter {
   final Color color;
   _PerfilPainter({required this.color});
@@ -455,7 +432,6 @@ class _PerfilPainter extends CustomPainter {
   bool shouldRepaint(_PerfilPainter o) => o.color != color;
 }
 
-// Menu
 class _MenuPainter extends CustomPainter {
   final Color color;
   _MenuPainter({required this.color});

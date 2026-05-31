@@ -1,7 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SessionService {
-  // Cache em memória — preenchido ao salvar ou ao ler do disco
   static String? _token;
   static String? _uuid;
   static String? _email;
@@ -12,7 +11,6 @@ class SessionService {
   static const _keyEmail = 'session_email';
   static const _keyRole  = 'session_role';
 
-  // ── SALVAR ───────────────────────────────────────────────────────────────
   static Future<void> salvar({
     required String token,
     required String uuid,
@@ -36,7 +34,6 @@ class SessionService {
     }
   }
 
-  // ── LER (memória → disco) ─────────────────────────────────────────────────
   static Future<String?> getToken() async => _token ?? await _disco(_keyToken);
   static Future<String?> getUuid()  async => _uuid  ?? await _disco(_keyUuid);
   static Future<String?> getEmail() async => _email ?? await _disco(_keyEmail);
@@ -57,7 +54,6 @@ class SessionService {
     }
   }
 
-  // ── ESTÁ LOGADO ───────────────────────────────────────────────────────────
   static Future<bool> estaLogado() async {
     final token = await getToken();
     final uuid  = await getUuid();
@@ -65,7 +61,6 @@ class SessionService {
         uuid  != null && uuid.isNotEmpty;
   }
 
-  // ── LIMPAR ────────────────────────────────────────────────────────────────
   static Future<void> limpar() async {
     _token = null;
     _uuid  = null;
@@ -78,7 +73,6 @@ class SessionService {
     } catch (_) {}
   }
 
-  // ── HEADERS ───────────────────────────────────────────────────────────────
   static Future<Map<String, String>> getHeaders() async {
     final token = await getToken();
     return {

@@ -14,13 +14,12 @@ class Checklist {
   });
 
   factory Checklist.fromJson(Map<String, dynamic> json) {
-    // usuario pode vir como objeto ou como id
     final usuarioRaw = json['usuario'];
     final int usuarioId = usuarioRaw is Map
         ? (usuarioRaw['id'] as int? ?? 0)
         : (json['usuario_id'] as int? ?? 0);
 
-    // cidade pode vir como objeto ou como id
+
     final cidadeRaw = json['cidade'];
     final int cidadeId = cidadeRaw is Map
         ? (cidadeRaw['id'] as int? ?? 0)

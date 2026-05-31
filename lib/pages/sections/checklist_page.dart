@@ -50,10 +50,8 @@ class _ChecklistPageState extends State<ChecklistPage> {
   Future<void> _carregarTudo() async {
     setState(() { _loading = true; _erro = null; });
     try {
-      // Pega uuid e usuarioId da sessão
       _uuid = await SessionService.getUuid() ?? '';
 
-      // Carrega cidades e checklist em paralelo
       final resultados = await Future.wait([
         _cidadeService.listarCidades(),
         _checklistService.buscarPorUsuario(_uuid),
@@ -62,11 +60,9 @@ class _ChecklistPageState extends State<ChecklistPage> {
       final cidades = resultados[0] as List<Cidade>;
       final checklist = resultados[1] as List;
 
-      // Monta mapa de visitadas por cidadeId
       final visitadasMap = <int, bool>{};
       for (final item in checklist) {
         visitadasMap[item.cidadeId] = item.visitado;
-        // Pega o usuarioId do primeiro item
         if (_usuarioId == 0) _usuarioId = item.usuarioId;
       }
 
@@ -111,11 +107,10 @@ class _ChecklistPageState extends State<ChecklistPage> {
   }
 
   Future<void> _toggleVisita(Cidade cidade) async {
-    if (_salvando.contains(cidade.id)) return; // já tem req em andamento
+    if (_salvando.contains(cidade.id)) return;
 
     final eraVisitada = _visitadas[cidade.id] ?? false;
 
-    // Atualiza UI imediatamente (otimista)
     setState(() {
       _visitadas[cidade.id] = !eraVisitada;
       _salvando.add(cidade.id);
@@ -300,10 +295,6 @@ class _ChecklistPageState extends State<ChecklistPage> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// HEADER COM PROGRESSO
-// ─────────────────────────────────────────────────────────────────────────────
-
 class _ProgressHeader extends StatelessWidget {
   final int marcadas;
   final int total;
@@ -358,9 +349,6 @@ class _ProgressHeader extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// FILTRO
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _FilterChipButton extends StatelessWidget {
   final IconData icon;
@@ -402,9 +390,6 @@ class _FilterChipButton extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ITEM DA CIDADE
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _CidadeItem extends StatelessWidget {
   final Cidade cidade;
@@ -470,9 +455,6 @@ class _CidadeItem extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ERRO
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _ErroView extends StatelessWidget {
   final String mensagem;

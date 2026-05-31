@@ -7,7 +7,6 @@ class AuthService {
  // static const String _baseUrl = 'http://10.0.2.2:8081';
   static const String _baseUrl = 'http://localhost:8081';
 
-  // ── LOGIN ────────────────────────────────────────────────────────────────
   Future<Usuario> login(String email, String senha) async {
     final uri = Uri.parse('$_baseUrl/auth/login');
     final response = await http.post(
@@ -52,7 +51,6 @@ class AuthService {
     }
   }
 
-  // ── CADASTRO ─────────────────────────────────────────────────────────────
   Future<void> cadastrar({
     required String nome,
     required String sobrenome,
@@ -77,7 +75,6 @@ class AuthService {
     }
   }
 
-  // ── BUSCAR USUÁRIO COMPLETO ───────────────────────────────────────────────
   Future<Usuario> buscarUsuarioPorUuid(String uuid) async {
     final headers = await SessionService.getHeaders();
     final uri = Uri.parse('$_baseUrl/usuarios/$uuid');
@@ -92,7 +89,6 @@ class AuthService {
     }
   }
 
-  // ── LOGOUT ───────────────────────────────────────────────────────────────
   Future<void> logout() async {
     await SessionService.limpar();
   }

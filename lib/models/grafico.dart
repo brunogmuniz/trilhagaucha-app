@@ -53,7 +53,6 @@ class Grafico {
         'porcentagem_metropolitana': porcentagemMetropolitana,
       };
 
-  /// Retorna um mapa de região → porcentagem para uso em gráficos
   Map<String, double> get porPorRegiao => {
         'Norte': porcentagemNorte ?? 0,
         'Serra': porcentagemSerra ?? 0,
