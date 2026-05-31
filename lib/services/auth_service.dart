@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/usuario.dart';
 import 'session_service.dart';
+import '../config/api_config.dart';
 
 class AuthService {
- // static const String _baseUrl = 'http://10.0.2.2:8081';
-  static const String _baseUrl = 'http://localhost:8081';
+  static final String _baseUrl = ApiConfig.baseUrl;
 
   Future<Usuario> login(String email, String senha) async {
     final uri = Uri.parse('$_baseUrl/auth/login');

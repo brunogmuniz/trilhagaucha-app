@@ -1,10 +1,11 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/cidade.dart';
+import '../config/api_config.dart';
 
 class CidadeService {
-  //static const String _baseUrl = 'http://10.0.2.2:8081';
-  static const String _baseUrl = 'http://localhost:8081';
+
+  static final String _baseUrl = ApiConfig.baseUrl;
 
   Future<List<Cidade>> listarCidades() async {
     final uri = Uri.parse('$_baseUrl/cidades/listar');

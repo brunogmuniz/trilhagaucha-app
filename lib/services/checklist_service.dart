@@ -4,10 +4,10 @@ import 'package:http/http.dart' as http;
 import '../main.dart';
 import '../models/checklist.dart';
 import 'session_service.dart';
+import '../config/api_config.dart';
 
 class ChecklistService {
- // static const String _baseUrl = 'http://10.0.2.2:8081';
-  static const String _baseUrl = 'http://localhost:8081';
+  static final String _baseUrl = ApiConfig.baseUrl;
   void _verificarAuth(http.Response response) {
     if (response.statusCode == 401 || response.statusCode == 403) {
       MyApp.forcarLogin();
