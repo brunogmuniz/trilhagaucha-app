@@ -5,31 +5,27 @@ import '../config/api_config.dart';
 
 class CidadeService {
 
-  static final String _baseUrl = ApiConfig.baseUrl;
-
   Future<List<Cidade>> listarCidades() async {
-    final uri = Uri.parse('$_baseUrl/cidades/listar');
+    final uri = Uri.parse('${ApiConfig.baseUrl}/cidades/listar');
     final response = await http.get(uri);
 
     if (response.statusCode == 200) {
-      final List<dynamic> jsonList = jsonDecode(
-        utf8.decode(response.bodyBytes),
-      );
-      return jsonList.map((e) => Cidade.fromJson(e as Map<String, dynamic>)).toList();
+      final List data = jsonDecode(utf8.decode(response.bodyBytes));
+
+      return data.map((e) => Cidade.fromJson(e)).toList();
     } else {
       throw Exception('Erro ao buscar cidades: ${response.statusCode}');
     }
   }
 
   Future<List<Cidade>> listarPorRegiao(String regiao) async {
-    final uri = Uri.parse('$_baseUrl/cidades/regiao/$regiao');
+    final uri = Uri.parse('${ApiConfig.baseUrl}/cidades/regiao/$regiao');
     final response = await http.get(uri);
 
     if (response.statusCode == 200) {
-      final List<dynamic> jsonList = jsonDecode(
-        utf8.decode(response.bodyBytes),
-      );
-      return jsonList.map((e) => Cidade.fromJson(e as Map<String, dynamic>)).toList();
+      final List data = jsonDecode(utf8.decode(response.bodyBytes));
+
+      return data.map((e) => Cidade.fromJson(e)).toList();
     } else {
       throw Exception('Erro ao buscar cidades por região: ${response.statusCode}');
     }
