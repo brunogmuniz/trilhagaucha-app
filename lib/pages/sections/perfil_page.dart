@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../../services/auth_service.dart';
 import '../../services/session_service.dart';
 import '../../models/usuario.dart';
@@ -13,12 +15,15 @@ class PerfilPage extends StatefulWidget {
 }
 
 class _PerfilPageState extends State<PerfilPage> {
+  static const String _baseUrl = 'http://localhost:8081';
+
   final AuthService _authService = AuthService();
   final ChecklistService _checklistService = ChecklistService();
   final CidadeService _cidadeService = CidadeService();
 
   String? _ultimaCidade;
   String _porcentagemRS = '0%';
+  String? _cidadeUsuario;
 
   bool _loading = true;
   String? _erro;
@@ -37,20 +42,27 @@ class _PerfilPageState extends State<PerfilPage> {
   @override
   void initState() {
     super.initState();
-    _corSelecionada = _coresAvatar[0]; // Cor padrão (Mockada por enquanto)
+    _corSelecionada = _coresAvatar[0];
     _carregarPerfil();
   }
 
-  Future<void> _carregarPerfil() async {
-    setState(() {
-      _loading = true;
-      _erro = null;
-    });
+  // O parâmetro isRefresh evita que a tela mostre o loading central
+  // bruscamente quando o usuário puxar para atualizar
+  Future<void> _carregarPerfil({bool isRefresh = false}) async {
+    if (!isRefresh) {
+      setState(() {
+        _loading = true;
+        _erro = null;
+      });
+    } else {
+      setState(() {
+        _erro = null;
+      });
+    }
 
     try {
       final uuid = await SessionService.getUuid();
       if (uuid != null && uuid.isNotEmpty) {
-
         final resultados = await Future.wait([
           _authService.buscarUsuarioPorUuid(uuid),
           _checklistService.buscarUltimaCidadeVisitada(uuid),
@@ -58,13 +70,28 @@ class _PerfilPageState extends State<PerfilPage> {
           _checklistService.buscarPorUsuario(uuid),
         ]);
 
+        // Buscando a cidade direto da API para garantir
+        try {
+          final headers = await SessionService.getHeaders();
+          final userResp = await http.get(
+            Uri.parse('$_baseUrl/usuarios/$uuid'),
+            headers: headers,
+          ).timeout(const Duration(seconds: 10));
+
+          if (userResp.statusCode == 200) {
+            final json = jsonDecode(utf8.decode(userResp.bodyBytes));
+            if (json['cidade'] != null) {
+              _cidadeUsuario = json['cidade']['nome'];
+            } else {
+              _cidadeUsuario = null;
+            }
+          }
+        } catch (_) {}
+
         setState(() {
           _usuario = resultados[0] as Usuario;
           _ultimaCidade = resultados[1] as String?;
 
-          // Removida a lógica de puxar a corAvatar do banco (Mockado)
-
-          // Lógica para calcular a % do RS visitado
           final cidades = resultados[2] as List;
           final checklist = resultados[3] as List;
 
@@ -78,7 +105,7 @@ class _PerfilPageState extends State<PerfilPage> {
           final progresso = total == 0 ? 0.0 : marcadas / total;
           _porcentagemRS = '${(progresso * 100).toStringAsFixed(0)}%';
 
-          _loading = false;
+          if (!isRefresh) _loading = false;
         });
       } else {
         throw Exception('Usuário não encontrado na sessão.');
@@ -86,17 +113,15 @@ class _PerfilPageState extends State<PerfilPage> {
     } catch (e) {
       setState(() {
         _erro = e.toString().replaceFirst('Exception: ', '');
-        _loading = false;
+        if (!isRefresh) _loading = false;
       });
     }
   }
 
-  // Função mockada: apenas atualiza o estado local
   void _atualizarCorAvatar(Color cor) {
     setState(() {
       _corSelecionada = cor;
     });
-    // TODO Futuro: Chamar o endpoint no backend para salvar a cor
   }
 
   String _formatarDataCadastro() {
@@ -117,7 +142,18 @@ class _PerfilPageState extends State<PerfilPage> {
 
     if (_erro != null) {
       return Center(
-        child: Text('Erro ao carregar perfil:\n$_erro', textAlign: TextAlign.center),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('Erro ao carregar perfil:\n$_erro', textAlign: TextAlign.center),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => _carregarPerfil(),
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1F918B)),
+              child: const Text('Tentar novamente', style: TextStyle(color: Colors.white)),
+            )
+          ],
+        ),
       );
     }
 
@@ -125,143 +161,174 @@ class _PerfilPageState extends State<PerfilPage> {
         ? _usuario!.nome[0].toUpperCase()
         : '?';
 
-    return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-      physics: const BouncingScrollPhysics(),
-      children: [
-        Column(
-          children: [
-            CircleAvatar(
-              radius: 46,
-              backgroundColor: _corSelecionada,
-              child: Text(
-                inicial,
-                style: const TextStyle(
-                  fontSize: 40,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
+    return RefreshIndicator(
+      onRefresh: () => _carregarPerfil(isRefresh: true),
+      color: const Color(0xFF1F918B),
+      child: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        physics: const AlwaysScrollableScrollPhysics(), // Necessário para o RefreshIndicator funcionar mesmo se a tela não encher
+        children: [
+          Column(
+            children: [
+              CircleAvatar(
+                radius: 46,
+                backgroundColor: _corSelecionada,
+                child: Text(
+                  inicial,
+                  style: const TextStyle(
+                    fontSize: 40,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              '${_usuario?.nome} ${_usuario?.sobrenome}',
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-                color: Colors.black87,
+              const SizedBox(height: 16),
+              Text(
+                '${_usuario?.nome} ${_usuario?.sobrenome}',
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                _usuario?.email ?? '',
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.black54,
+                ),
+              ),
+              if (_cidadeUsuario != null && _cidadeUsuario!.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1F918B).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.location_on, size: 14, color: Color(0xFF1F918B)),
+                      const SizedBox(width: 4),
+                      Text(
+                        _cidadeUsuario!,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1F918B),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+
+          const SizedBox(height: 24),
+
+          Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(color: const Color(0xFFDDDDDD)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: _coresAvatar.map((cor) {
+                  final selecionada = cor == _corSelecionada;
+                  return GestureDetector(
+                    onTap: () => _atualizarCorAvatar(cor),
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 6),
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: cor,
+                        shape: BoxShape.circle,
+                        border: selecionada
+                            ? Border.all(color: Colors.black54, width: 2.5)
+                            : null,
+                      ),
+                    ),
+                  );
+                }).toList(),
               ),
             ),
-            const SizedBox(height: 4),
-            Text(
-              _usuario?.email ?? '',
-              style: const TextStyle(
-                fontSize: 14,
-                color: Colors.black54,
+          ),
+
+          const SizedBox(height: 32),
+
+          Row(
+            children: [
+              Expanded(
+                child: _EstatisticaCard(
+                  icon: Icons.place_rounded,
+                  titulo: 'Última cidade',
+                  valor: _ultimaCidade ?? '-',
+                  cor: const Color(0xFF1F918B),
+                ),
               ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _EstatisticaCard(
+                  icon: Icons.explore_rounded,
+                  titulo: 'RS Explorado',
+                  valor: _porcentagemRS,
+                  cor: const Color(0xFFEF4B4F),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 24),
+
+          const Text(
+            'DADOS PESSOAIS',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: Colors.black38,
+              letterSpacing: 1.2,
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 12),
 
-        const SizedBox(height: 24),
-
-        Center(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          Container(
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(30),
-              border: Border.all(color: const Color(0xFFDDDDDD)),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.03),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: _coresAvatar.map((cor) {
-                final selecionada = cor == _corSelecionada;
-                return GestureDetector(
-                  onTap: () => _atualizarCorAvatar(cor),
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 6),
-                    width: 28,
-                    height: 28,
-                    decoration: BoxDecoration(
-                      color: cor,
-                      shape: BoxShape.circle,
-                      border: selecionada
-                          ? Border.all(color: Colors.black54, width: 2.5)
-                          : null,
-                    ),
-                  ),
-                );
-              }).toList(),
+            child: Column(
+              children: [
+                _CampoLeitura(label: 'Nome', valor: _usuario?.nome ?? ''),
+                const Divider(height: 24, color: Color(0xFFF2F2F2)),
+                _CampoLeitura(label: 'Sobrenome', valor: _usuario?.sobrenome ?? ''),
+                const Divider(height: 24, color: Color(0xFFF2F2F2)),
+                _CampoLeitura(label: 'E-mail', valor: _usuario?.email ?? ''),
+                const Divider(height: 24, color: Color(0xFFF2F2F2)),
+                _CampoLeitura(label: 'Cidade', valor: _cidadeUsuario ?? 'Não informada'),
+                const Divider(height: 24, color: Color(0xFFF2F2F2)),
+                _CampoLeitura(label: 'Membro desde', valor: _formatarDataCadastro()),
+              ],
             ),
           ),
-        ),
 
-        const SizedBox(height: 32),
-
-        Row(
-          children: [
-            Expanded(
-              child: _EstatisticaCard(
-                icon: Icons.place_rounded,
-                titulo: 'Última cidade',
-                valor: _ultimaCidade ?? '-',
-                cor: const Color(0xFF1F918B),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _EstatisticaCard(
-                icon: Icons.explore_rounded,
-                titulo: 'RS Explorado',
-                valor: _porcentagemRS,
-                cor: const Color(0xFFEF4B4F),
-              ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 24),
-
-        const Text(
-          'DADOS PESSOAIS',
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-            color: Colors.black38,
-            letterSpacing: 1.2,
-          ),
-        ),
-        const SizedBox(height: 12),
-
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.03),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
-            children: [
-              _CampoLeitura(label: 'Nome', valor: _usuario?.nome ?? ''),
-              const Divider(height: 24, color: Color(0xFFF2F2F2)),
-              _CampoLeitura(label: 'Sobrenome', valor: _usuario?.sobrenome ?? ''),
-              const Divider(height: 24, color: Color(0xFFF2F2F2)),
-              _CampoLeitura(label: 'E-mail', valor: _usuario?.email ?? ''),
-              const Divider(height: 24, color: Color(0xFFF2F2F2)),
-              _CampoLeitura(label: 'Membro desde', valor: _formatarDataCadastro()),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 40),
-      ],
+          const SizedBox(height: 40),
+        ],
+      ),
     );
   }
 }

@@ -87,159 +87,159 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF2A2A2A),
-      body: Center(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: SafeArea(
         child: SingleChildScrollView(
-          child: Container(
-            margin: const EdgeInsets.all(24),
-            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 36),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Image.asset('assets/images/logo.png', height: 80),
-                const SizedBox(height: 24),
-
-                const Text(
-                  'Registrar',
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.black87,
-                  ),
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Criar uma conta',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black87,
+                  letterSpacing: -0.5,
                 ),
-                const SizedBox(height: 28),
-
-                _CampoTexto(
-                  label: 'Nome',
-                  controller: _nomeController,
-                  keyboardType: TextInputType.name,
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Junte-se à Trilha Gaúcha e comece a explorar.',
+                style: TextStyle(
+                  fontSize: 15,
+                  color: Colors.black54,
                 ),
-                const SizedBox(height: 16),
+              ),
+              const SizedBox(height: 32),
 
-                _CampoTexto(
-                  label: 'Sobrenome',
-                  controller: _sobrenomeController,
-                  keyboardType: TextInputType.name,
-                ),
-                const SizedBox(height: 16),
-
-                _CampoTexto(
-                  label: 'Email',
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                ),
-                const SizedBox(height: 16),
-
-                _CampoTexto(
-                  label: 'Senha',
-                  controller: _senhaController,
-                  obscureText: !_senhaVisivel,
-                  sufixIcon: IconButton(
-                    icon: Icon(
-                      _senhaVisivel ? Icons.visibility_off : Icons.visibility,
-                      color: Colors.black54,
-                      size: 20,
-                    ),
-                    onPressed: () =>
-                        setState(() => _senhaVisivel = !_senhaVisivel),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                _CampoTexto(
-                  label: 'Confirmar senha',
-                  controller: _confirmarSenhaController,
-                  obscureText: !_confirmarSenhaVisivel,
-                  sufixIcon: IconButton(
-                    icon: Icon(
-                      _confirmarSenhaVisivel
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                      color: Colors.black54,
-                      size: 20,
-                    ),
-                    onPressed: () => setState(
-                            () => _confirmarSenhaVisivel = !_confirmarSenhaVisivel),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Mensagem de erro
-                if (_erro != null) ...[
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFEBEB),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: const Color(0xFFE84040)),
-                    ),
-                    child: Text(
-                      _erro!,
-                      style: const TextStyle(
-                          fontSize: 13, color: Color(0xFFE84040)),
+              Row(
+                children: [
+                  Expanded(
+                    child: _CampoTexto(
+                      label: 'Nome',
+                      hint: 'Seu nome',
+                      controller: _nomeController,
+                      prefixIcon: Icons.person_outline,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _CampoTexto(
+                      label: 'Sobrenome',
+                      hint: 'Seu sobrenome',
+                      controller: _sobrenomeController,
+                      prefixIcon: Icons.badge_outlined,
+                    ),
+                  ),
                 ],
+              ),
+              const SizedBox(height: 20),
 
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: OutlinedButton(
-                    onPressed: _carregando ? null : _registrar,
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFFE84040),
-                      side: const BorderSide(color: Color(0xFFE84040)),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    child: _carregando
-                        ? const SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(
-                        color: Color(0xFFE84040),
-                        strokeWidth: 2.5,
-                      ),
-                    )
-                        : const Text(
-                      'Registrar',
-                      style: TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.w500),
-                    ),
+              _CampoTexto(
+                label: 'E-mail',
+                hint: 'exemplo@email.com',
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                prefixIcon: Icons.email_outlined,
+              ),
+              const SizedBox(height: 20),
+
+              _CampoTexto(
+                label: 'Senha',
+                hint: 'Mínimo 6 caracteres',
+                controller: _senhaController,
+                obscureText: !_senhaVisivel,
+                prefixIcon: Icons.lock_outline,
+                sufixIcon: IconButton(
+                  icon: Icon(
+                    _senhaVisivel ? Icons.visibility_off : Icons.visibility,
+                    color: Colors.black45,
+                    size: 22,
                   ),
+                  onPressed: () => setState(() => _senhaVisivel = !_senhaVisivel),
                 ),
-                const SizedBox(height: 20),
+              ),
+              const SizedBox(height: 20),
 
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      'Já possui conta? ',
-                      style: TextStyle(fontSize: 13, color: Colors.black54),
-                    ),
-                    GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: const Text(
-                        'Logar-se.',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.black54,
-                          decoration: TextDecoration.underline,
+              _CampoTexto(
+                label: 'Confirmar senha',
+                hint: 'Repita sua senha',
+                controller: _confirmarSenhaController,
+                obscureText: !_confirmarSenhaVisivel,
+                prefixIcon: Icons.lock_outline,
+                sufixIcon: IconButton(
+                  icon: Icon(
+                    _confirmarSenhaVisivel ? Icons.visibility_off : Icons.visibility,
+                    color: Colors.black45,
+                    size: 22,
+                  ),
+                  onPressed: () => setState(() => _confirmarSenhaVisivel = !_confirmarSenhaVisivel),
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              if (_erro != null) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFEBEB),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFE84040).withOpacity(0.5)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.error_outline, color: Color(0xFFE84040), size: 20),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          _erro!,
+                          style: const TextStyle(fontSize: 13, color: Color(0xFFE84040)),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
+                const SizedBox(height: 24),
               ],
-            ),
+
+              SizedBox(
+                width: double.infinity,
+                height: 54,
+                child: ElevatedButton(
+                  onPressed: _carregando ? null : _registrar,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFE84040), // Vermelho da marca
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: _carregando
+                      ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                  )
+                      : const Text(
+                    'Cadastrar',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32),
+            ],
           ),
         ),
       ),
@@ -247,16 +247,21 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 }
 
+
 class _CampoTexto extends StatelessWidget {
   final String label;
+  final String hint;
   final TextEditingController controller;
   final bool obscureText;
   final TextInputType keyboardType;
+  final IconData prefixIcon;
   final Widget? sufixIcon;
 
   const _CampoTexto({
     required this.label,
+    required this.hint,
     required this.controller,
+    required this.prefixIcon,
     this.obscureText = false,
     this.keyboardType = TextInputType.text,
     this.sufixIcon,
@@ -267,32 +272,36 @@ class _CampoTexto extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: const TextStyle(fontSize: 14, color: Colors.black87)),
-        const SizedBox(height: 6),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black87),
+        ),
+        const SizedBox(height: 8),
         TextField(
           controller: controller,
           obscureText: obscureText,
           keyboardType: keyboardType,
+          style: const TextStyle(fontSize: 15, color: Colors.black87),
           decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: const TextStyle(color: Colors.black38, fontSize: 14),
             filled: true,
-            fillColor: const Color(0xFFF2F2F2),
+            fillColor: const Color(0xFFF8F9FA),
+            prefixIcon: Icon(prefixIcon, color: Colors.black45, size: 22),
             suffixIcon: sufixIcon,
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Color(0xFFCCCCCC)),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Color(0xFFCCCCCC)),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFEEEEEE), width: 1.5),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide:
-              const BorderSide(color: Color(0xFFE84040), width: 1.5),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE84040), width: 1.5), // Borda Vermelha ao focar
             ),
-            contentPadding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           ),
         ),
       ],
