@@ -51,7 +51,7 @@ class RotasPage extends StatelessWidget {
 
             const SizedBox(height: 48),
 
-            // Card de Apoio (Buy me a coffee)
+            // Card de Apoio (Apoia.se)
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
@@ -69,8 +69,8 @@ class RotasPage extends StatelessWidget {
               child: Column(
                 children: [
                   const Icon(
-                    Icons.favorite_rounded,
-                    color: Color(0xFFEF4B4F), // Vermelho
+                    Icons.volunteer_activism_rounded,
+                    color: Color(0xFFEF4B4F), // Vermelho da paleta
                     size: 32,
                   ),
                   const SizedBox(height: 16),
@@ -97,7 +97,7 @@ class RotasPage extends StatelessWidget {
                     height: 48,
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFF813F), // Laranja clássico do Buy me a Coffee
+                        backgroundColor: const Color(0xFFEF4B4F), // Vermelho combinando com o Apoia.se
                         foregroundColor: Colors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
@@ -106,7 +106,7 @@ class RotasPage extends StatelessWidget {
                       ),
                       onPressed: () async {
                         final Uri url = Uri.parse(
-                          'https://buymeacoffee.com/trilhagaucha',
+                          'https://apoia.se/trillhagaucha',
                         );
                         if (await canLaunchUrl(url)) {
                           await launchUrl(
@@ -115,9 +115,9 @@ class RotasPage extends StatelessWidget {
                           );
                         }
                       },
-                      icon: const Icon(Icons.coffee_rounded, size: 20),
+                      icon: const Icon(Icons.favorite_rounded, size: 20),
                       label: const Text(
-                        'Buy me a coffee',
+                        'Apoia.se',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
