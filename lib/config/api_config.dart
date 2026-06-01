@@ -1,3 +1,3 @@
 class ApiConfig {
-  static const String baseUrl = "https://trilha-gaucha.onrender.com";
+  static const String baseUrl = "http://localhost:8081";
 }
