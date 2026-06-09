@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 import '../login_page.dart';
 import 'configuracoes_page.dart';
-import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class MenuPage extends StatelessWidget {
@@ -60,9 +59,10 @@ class MenuPage extends StatelessWidget {
     );
   }
 
-  Future<void> _abrirBuyMeACoffee() async {
+  // Função renomeada para o Apoia.se
+  Future<void> _abrirApoiase() async {
     final Uri url = Uri.parse(
-      'https://buymeacoffee.com/trilhagaucha',
+      'https://apoia.se/trillhagaucha',
     );
 
     await launchUrl(
@@ -100,10 +100,10 @@ class MenuPage extends StatelessWidget {
           _MenuItem(icon: Icons.shield_outlined, label: 'Privacidade e Termos', onTap: () {}),
           _MenuItem(icon: Icons.info_outline, label: 'Sobre o App', onTap: () {}),
           _MenuItem(
-            icon: Icons.coffee_outlined,
-            label: 'Buy me a coffee',
-            iconColor: const Color(0xFFFF9F00),
-            onTap: _abrirBuyMeACoffee,
+            icon: Icons.favorite_outline_rounded, // Ícone de coração para o Apoia.se
+            label: 'Apoia.se',
+            iconColor: const Color(0xFFEF4B4F), // Vermelho
+            onTap: _abrirApoiase,
           ),
         ]),
         const SizedBox(height: 16),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 class StatsPage extends StatelessWidget {
   const StatsPage({super.key});
 
@@ -16,7 +17,7 @@ class StatsPage extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(28),
               decoration: BoxDecoration(
-                color: const Color(0xFFEF4B4F).withOpacity(0.1), // Usando o vermelho aqui para diferenciar da tela de rotas
+                color: const Color(0xFFEF4B4F).withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -50,6 +51,7 @@ class StatsPage extends StatelessWidget {
 
             const SizedBox(height: 48),
 
+            // Card de Apoio (Apoia.se)
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
@@ -67,7 +69,7 @@ class StatsPage extends StatelessWidget {
               child: Column(
                 children: [
                   const Icon(
-                    Icons.favorite_rounded,
+                    Icons.volunteer_activism_rounded,
                     color: Color(0xFFEF4B4F), // Vermelho
                     size: 32,
                   ),
@@ -95,7 +97,7 @@ class StatsPage extends StatelessWidget {
                     height: 48,
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFF813F), // Laranja clássico do Buy me a Coffee
+                        backgroundColor: const Color(0xFFEF4B4F), // Vermelho combinando com o Apoia.se
                         foregroundColor: Colors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
@@ -104,7 +106,7 @@ class StatsPage extends StatelessWidget {
                       ),
                       onPressed: () async {
                         final Uri url = Uri.parse(
-                          'https://buymeacoffee.com/trilhagaucha',
+                          'https://apoia.se/trillhagaucha',
                         );
 
                         if (await canLaunchUrl(url)) {
@@ -114,9 +116,9 @@ class StatsPage extends StatelessWidget {
                           );
                         }
                       },
-                      icon: const Icon(Icons.coffee_rounded, size: 20),
+                      icon: const Icon(Icons.favorite_rounded, size: 20),
                       label: const Text(
-                        'Buy me a coffee',
+                        'Apoia.se',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
