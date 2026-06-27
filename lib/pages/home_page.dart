@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'sections/stats_page.dart';
+import 'sections/conquista_page.dart' show ConquistaPage;
+import 'sections/conquista_page.dart';
 import 'sections/rotas_page.dart';
 import 'sections/checklist_page.dart';
 import 'sections/perfil_page.dart';
@@ -19,7 +20,7 @@ class _HomePageState extends State<HomePage> {
   Key _perfilKey = UniqueKey();
 
   List<Widget> get _pages => [
-    const StatsPage(),
+    const ConquistaPage(),
     const RotasPage(),
     const ChecklistPage(),
     PerfilPage(key: _perfilKey),
@@ -113,7 +114,7 @@ class _AppHeader extends StatelessWidget {
 }
 
 
-enum _NavIcon { stats, rotas, checklist, perfil, menu }
+enum _NavIcon { conquistas, rotas, checklist, perfil, menu }
 
 class _BottomNav extends StatelessWidget {
   final int currentIndex;
@@ -150,7 +151,7 @@ class _BottomNav extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _buildSideTab(0, _NavIcon.stats, 'Stats'),
+                _buildSideTab(0, _NavIcon.conquistas, 'Conquistas'),
                 _buildSideTab(1, _NavIcon.rotas, 'Rotas'),
                 const SizedBox(width: 76),
                 _buildSideTab(3, _NavIcon.perfil, 'Perfil'),
@@ -261,8 +262,8 @@ class _NavIconWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = Size(size, size);
     switch (icon) {
-      case _NavIcon.stats:
-        return CustomPaint(size: s, painter: _StatsPainter(color: color));
+      case _NavIcon.conquistas:
+        return CustomPaint(size: s, painter: _ConquistasPainter(color: color));
       case _NavIcon.rotas:
         return CustomPaint(size: s, painter: _RotasPainter(color: color));
       case _NavIcon.checklist:
@@ -275,42 +276,62 @@ class _NavIconWidget extends StatelessWidget {
   }
 }
 
-class _StatsPainter extends CustomPainter {
+class _ConquistasPainter extends CustomPainter {
   final Color color;
-  _StatsPainter({required this.color});
+  _ConquistasPainter({required this.color});
 
   @override
   void paint(Canvas canvas, Size size) {
     final w = size.width;
     final h = size.height;
-    final pts = [
-      Offset(w * 0.05, h * 0.70),
-      Offset(w * 0.22, h * 0.38),
-      Offset(w * 0.42, h * 0.58),
-      Offset(w * 0.62, h * 0.18),
-      Offset(w * 0.82, h * 0.42),
-      Offset(w * 0.95, h * 0.30),
-    ];
-    final area = Path()..moveTo(pts.first.dx, h * 0.95);
-    for (final p in pts) area.lineTo(p.dx, p.dy);
-    area.lineTo(pts.last.dx, h * 0.95);
-    area.close();
-    canvas.drawPath(area, Paint()..color = color.withOpacity(0.18)..style = PaintingStyle.fill);
-    final line = Path()..moveTo(pts[0].dx, pts[0].dy);
-    for (int i = 1; i < pts.length; i++) line.lineTo(pts[i].dx, pts[i].dy);
-    canvas.drawPath(line, Paint()
-      ..color = color..strokeWidth = 2.5..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round..style = PaintingStyle.stroke);
-    final dot   = Paint()..color = color..style = PaintingStyle.fill;
-    final dotBg = Paint()..color = Colors.white..style = PaintingStyle.fill;
-    for (final p in [pts[1], pts[3], pts[5]]) {
-      canvas.drawCircle(p, 3.5, dot);
-      canvas.drawCircle(p, 1.8, dotBg);
-    }
+    final fill = Paint()..color = color..style = PaintingStyle.fill;
+    final stroke = Paint()
+      ..color = color
+      ..strokeWidth = 2.2
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..style = PaintingStyle.stroke;
+
+    // Taça
+    final cup = Path()
+      ..moveTo(w * 0.28, h * 0.16)
+      ..lineTo(w * 0.72, h * 0.16)
+      ..lineTo(w * 0.66, h * 0.52)
+      ..quadraticBezierTo(w * 0.5, h * 0.62, w * 0.34, h * 0.52)
+      ..close();
+    canvas.drawPath(cup, fill);
+
+    // Alças laterais
+    final leftHandle = Path()
+      ..moveTo(w * 0.28, h * 0.22)
+      ..quadraticBezierTo(w * 0.04, h * 0.22, w * 0.10, h * 0.42)
+      ..quadraticBezierTo(w * 0.16, h * 0.54, w * 0.32, h * 0.50);
+    canvas.drawPath(leftHandle, stroke);
+
+    final rightHandle = Path()
+      ..moveTo(w * 0.72, h * 0.22)
+      ..quadraticBezierTo(w * 0.96, h * 0.22, w * 0.90, h * 0.42)
+      ..quadraticBezierTo(w * 0.84, h * 0.54, w * 0.68, h * 0.50);
+    canvas.drawPath(rightHandle, stroke);
+
+    // Pé da taça
+    canvas.drawRect(
+      Rect.fromLTWH(w * 0.46, h * 0.58, w * 0.08, h * 0.14),
+      fill,
+    );
+
+    // Base
+    final base = Path()
+      ..moveTo(w * 0.30, h * 0.88)
+      ..lineTo(w * 0.70, h * 0.88)
+      ..lineTo(w * 0.64, h * 0.72)
+      ..lineTo(w * 0.36, h * 0.72)
+      ..close();
+    canvas.drawPath(base, fill);
   }
 
   @override
-  bool shouldRepaint(_StatsPainter o) => o.color != color;
+  bool shouldRepaint(_ConquistasPainter o) => o.color != color;
 }
 
 class _RotasPainter extends CustomPainter {
